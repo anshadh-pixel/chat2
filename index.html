@@ -1,94 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Secret Chat 💬</title>
+  <meta charset="UTF-8">
+  <title>1:1 ചാറ്റ് ആപ്പ്</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #ff9a9e, #fad0c4);
-      margin: 0;
-      padding: 0;
+      font-family: sans-serif;
+      background: linear-gradient(to right, #c2e9fb, #a1c4fd);
     }
     #login, #chat {
       max-width: 400px;
-      margin: 60px auto;
+      margin: 80px auto;
       padding: 20px;
       background: white;
       border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    #login { display: block; }
-    h2, h3 { text-align: center; color: #ff4e50; }
+    #chat { display: none; }
+    ul { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
+    li { margin-bottom: 10px; padding: 10px; border-radius: 8px; }
+    .sent { background: #d0ffd0; text-align: right; }
+    .received { background: #d0d0ff; text-align: left; }
     input, select, button {
+      margin-top: 10px;
       width: 100%;
       padding: 10px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
       font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
-    button {
-      background: #ff4e50;
-      color: white;
-      cursor: pointer;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-      height: 250px;
-      overflow-y: auto;
-      margin-bottom: 10px;
-    }
-    li {
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      max-width: 70%;
-    }
-    .me { background: #ffe0e0; align-self: flex-end; text-align: right; margin-left: auto; }
-    .other { background: #e0f7ff; align-self: flex-start; }
-    #messages { display: flex; flex-direction: column; }
+    button { background: #007bff; color: white; cursor: pointer; border: none; }
   </style>
 </head>
 <body>
 
 <div id="login">
-  <h2>🔐 Secret Couple Chat</h2>
-  <label>Choose Your ID:</label>
-  <select id="username">
-    <option value="userA">User A</option>
-    <option value="userB">User B</option>
-  </select>
-  <button onclick="login()">Enter Chat</button>
+  <h2>ലോഗിൻ</h2>
+  <input id="username" placeholder="ഉപയോക്താവിന്റെ പേര് നൽകുക (UserA / UserB)" />
+  <button onclick="login()">Login</button>
 </div>
 
 <div id="chat">
   <h3 id="welcome"></h3>
-  <label>Send To:</label>
-  <select id="userList"></select>
+  <label>എവർക്കാണ് അയക്കേണ്ടത്:</label>
+  <select id="userList"></select><br><br>
   <ul id="messages"></ul>
-  <input id="msg" placeholder="Type a message..." />
-  <button onclick="send()">Send</button>
+  <input id="msg" placeholder="മെസ്സേജ് ടൈപ്പ് ചെയ്യൂ..." />
+  <button onclick="send()">അയയ്ക്കുക</button>
 </div>
 
-<!-- ✅ CONNECT TO YOUR LIVE SERVER -->
-<script src="https://chat2-7o6i.onrender.com/socket.io/socket.io.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
+  // ✅ Renderil ullathaya backend connect cheyyuka
   const socket = io("https://chat2-2-y9e9.onrender.com");
   let myUsername = '';
 
   function login() {
-    const username = document.getElementById('username').value;
-    myUsername = username;
+    const username = document.getElementById('username').value.trim();
+    if (!username) return alert('പേര് നൽകുക');
     socket.emit('login', username);
   }
 
   socket.on('login_success', (users) => {
     document.getElementById('login').style.display = 'none';
     document.getElementById('chat').style.display = 'block';
-    document.getElementById('welcome').innerText = Welcome, ${myUsername}!;
+    myUsername = document.getElementById('username').value;
+    document.getElementById('welcome').innerText = സ്വാഗതം, ${myUsername}!;
+
     const userList = document.getElementById('userList');
     userList.innerHTML = '';
     users.forEach(u => {
@@ -106,16 +84,17 @@
     const message = document.getElementById('msg').value.trim();
     if (!message || !to) return;
     socket.emit('send_private', { to, message });
+
     const li = document.createElement('li');
-    li.className = 'me';
-    li.innerText = You to ${to}: ${message};
+    li.classList.add('sent');
+    li.innerText = നീ ${to}-ന്: ${message};
     document.getElementById('messages').appendChild(li);
     document.getElementById('msg').value = '';
   }
 
   socket.on('receive_private', ({ from, message }) => {
     const li = document.createElement('li');
-    li.className = 'other';
+    li.classList.add('received');
     li.innerText = ${from}: ${message};
     document.getElementById('messages').appendChild(li);
   });
