@@ -2,78 +2,123 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Secret 1:1 Chat</title>
+  <title>Secret Chat 💬</title>
   <style>
-    body { font-family: Arial, sans-serif; background: linear-gradient(to right, #f5d0c5, #c5e0f5); padding: 20px; }
-    #container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,0,0,0.2); }
-    h2, h3 { text-align: center; color: #444; }
-    select, input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; border: 1px solid #ccc; }
-    #chatBox { display: none; }
-    #messages { list-style: none; padding: 0; max-height: 250px; overflow-y: auto; margin: 15px 0; }
-    #messages li { margin: 8px 0; padding: 10px; border-radius: 6px; max-width: 75%; }
-    .you { background: #d4f8d4; margin-left: auto; text-align: right; }
-    .other { background: #d4e0f8; margin-right: auto; text-align: left; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #ff9a9e, #fad0c4);
+      margin: 0;
+      padding: 0;
+    }
+    #login, #chat {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: none;
+    }
+    #login { display: block; }
+    h2, h3 { text-align: center; color: #ff4e50; }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background: #ff4e50;
+      color: white;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      height: 250px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    li {
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      max-width: 70%;
+    }
+    .me { background: #ffe0e0; align-self: flex-end; text-align: right; margin-left: auto; }
+    .other { background: #e0f7ff; align-self: flex-start; }
+    #messages { display: flex; flex-direction: column; }
   </style>
 </head>
 <body>
 
-<div id="container">
-  <div id="loginBox">
-    <h2>🔒 Secret Chat</h2>
-    <select id="username">
-      <option value="">-- Select your ID --</option>
-      <option value="UserA">User A</option>
-      <option value="UserB">User B</option>
-    </select>
-    <button onclick="login()">Enter Chat</button>
-  </div>
-
-  <div id="chatBox">
-    <h3 id="welcome"></h3>
-    <ul id="messages"></ul>
-    <input type="text" id="msgInput" placeholder="Type your secret message..." />
-    <button onclick="sendMsg()">Send</button>
-  </div>
+<div id="login">
+  <h2>🔐 Secret Couple Chat</h2>
+  <label>Choose Your ID:</label>
+  <select id="username">
+    <option value="userA">User A</option>
+    <option value="userB">User B</option>
+  </select>
+  <button onclick="login()">Enter Chat</button>
 </div>
 
-<script src="/socket.io/socket.io.js"></script>
+<div id="chat">
+  <h3 id="welcome"></h3>
+  <label>Send To:</label>
+  <select id="userList"></select>
+  <ul id="messages"></ul>
+  <input id="msg" placeholder="Type a message..." />
+  <button onclick="send()">Send</button>
+</div>
+
+<!-- Connect to Render Socket.IO server -->
+<script src="https://chat2-7o6i.onrender.com/socket.io/socket.io.js"></script>
 <script>
-  const socket = io();
+  const socket = io("https://chat2-7o6i.onrender.com");
   let myUsername = '';
 
   function login() {
-    const user = document.getElementById('username').value;
-    if (!user) return alert("Please select your ID");
-    myUsername = user;
-    socket.emit("login", user);
+    const username = document.getElementById('username').value;
+    myUsername = username;
+    socket.emit('login', username);
   }
 
-  socket.on("login_success", () => {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("chatBox").style.display = "block";
-    document.getElementById("welcome").innerText = Hi ${myUsername}, start chatting secretly 💬;
+  socket.on('login_success', (users) => {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('chat').style.display = 'block';
+    document.getElementById('welcome').innerText = Welcome, ${myUsername}!;
+    const userList = document.getElementById('userList');
+    userList.innerHTML = '';
+    users.forEach(u => {
+      if (u !== myUsername) {
+        const opt = document.createElement('option');
+        opt.value = u;
+        opt.innerText = u;
+        userList.appendChild(opt);
+      }
+    });
   });
 
-  function sendMsg() {
-    const msg = document.getElementById("msgInput").value.trim();
-    if (!msg) return;
-    const to = myUsername === "UserA" ? "UserB" : "UserA";
-    socket.emit("send_private", { to, message: msg });
-    appendMsg(msg, "you");
-    document.getElementById("msgInput").value = '';
+  function send() {
+    const to = document.getElementById('userList').value;
+    const message = document.getElementById('msg').value.trim();
+    if (!message || !to) return;
+    socket.emit('send_private', { to, message });
+    const li = document.createElement('li');
+    li.className = 'me';
+    li.innerText = You to ${to}: ${message};
+    document.getElementById('messages').appendChild(li);
+    document.getElementById('msg').value = '';
   }
 
-  socket.on("receive_private", ({ from, message }) => {
-    appendMsg(${from}: ${message}, "other");
+  socket.on('receive_private', ({ from, message }) => {
+    const li = document.createElement('li');
+    li.className = 'other';
+    li.innerText = ${from}: ${message};
+    document.getElementById('messages').appendChild(li);
   });
-
-  function appendMsg(text, type) {
-    const li = document.createElement("li");
-    li.innerText = text;
-    li.className = type;
-    document.getElementById("messages").appendChild(li);
-    li.scrollIntoView();
-  }
 </script>
 
 </body>
