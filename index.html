@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Secret 1:1 Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: linear-gradient(to right, #f5d0c5, #c5e0f5); padding: 20px; }
+    #container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,0,0,0.2); }
+    h2, h3 { text-align: center; color: #444; }
+    select, input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; border: 1px solid #ccc; }
+    #chatBox { display: none; }
+    #messages { list-style: none; padding: 0; max-height: 250px; overflow-y: auto; margin: 15px 0; }
+    #messages li { margin: 8px 0; padding: 10px; border-radius: 6px; max-width: 75%; }
+    .you { background: #d4f8d4; margin-left: auto; text-align: right; }
+    .other { background: #d4e0f8; margin-right: auto; text-align: left; }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <div id="loginBox">
+    <h2>🔒 Secret Chat</h2>
+    <select id="username">
+      <option value="">-- Select your ID --</option>
+      <option value="UserA">User A</option>
+      <option value="UserB">User B</option>
+    </select>
+    <button onclick="login()">Enter Chat</button>
+  </div>
+
+  <div id="chatBox">
+    <h3 id="welcome"></h3>
+    <ul id="messages"></ul>
+    <input type="text" id="msgInput" placeholder="Type your secret message..." />
+    <button onclick="sendMsg()">Send</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  let myUsername = '';
+
+  function login() {
+    const user = document.getElementById('username').value;
+    if (!user) return alert("Please select your ID");
+    myUsername = user;
+    socket.emit("login", user);
+  }
+
+  socket.on("login_success", () => {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("chatBox").style.display = "block";
+    document.getElementById("welcome").innerText = Hi ${myUsername}, start chatting secretly 💬;
+  });
+
+  function sendMsg() {
+    const msg = document.getElementById("msgInput").value.trim();
+    if (!msg) return;
+    const to = myUsername === "UserA" ? "UserB" : "UserA";
+    socket.emit("send_private", { to, message: msg });
+    appendMsg(msg, "you");
+    document.getElementById("msgInput").value = '';
+  }
+
+  socket.on("receive_private", ({ from, message }) => {
+    appendMsg(${from}: ${message}, "other");
+  });
+
+  function appendMsg(text, type) {
+    const li = document.createElement("li");
+    li.innerText = text;
+    li.className = type;
+    document.getElementById("messages").appendChild(li);
+    li.scrollIntoView();
+  }
+</script>
+
+</body>
+</html>
