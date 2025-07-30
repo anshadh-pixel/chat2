@@ -5,9 +5,11 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: "*"
-  }
+  cors: { origin: "*" }
+});
+
+app.get("/", (req, res) => {
+  res.send("Server is running ✅");
 });
 
 let users = {};
@@ -22,7 +24,7 @@ io.on("connection", (socket) => {
     const toSocket = users[to];
     if (toSocket) {
       io.to(toSocket).emit("receive_private", {
-        from: Object.keys(users).find(key => users[key] === socket.id),
+        from: Object.keys(users).find(k => users[k] === socket.id),
         message
       });
     }
