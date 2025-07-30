@@ -92,10 +92,10 @@
     document.getElementById('msg').value = '';
   }
 
-  socket.on('receive_private', ({ from, message }) => {
+  socket.on('receive_private', function(data) {
     const li = document.createElement('li');
     li.classList.add('received');
-    li.innerText = ${from}: ${message};
+    li.innerText = data.from + ": " + data.message;
     document.getElementById('messages').appendChild(li);
   });
 </script>
