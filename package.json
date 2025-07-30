@@ -1,5 +1,5 @@
 {
-  "name": "secret-chat-app",
+  "name": "chat2",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
