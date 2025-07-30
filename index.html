@@ -73,11 +73,10 @@
   <button onclick="send()">Send</button>
 </div>
 
-<!-- Connect to Render Socket.IO server -->
+<!-- ✅ CONNECT TO YOUR LIVE SERVER -->
 <script src="https://chat2-7o6i.onrender.com/socket.io/socket.io.js"></script>
 <script>
-  const socket = io("https://chat2-7o6i.onrender.com");</script>
-  <script>
+  const socket = io("https://chat2-7o6i.onrender.com");
   let myUsername = '';
 
   function login() {
