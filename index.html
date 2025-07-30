@@ -17,10 +17,25 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
     #chat { display: none; }
-    ul { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
-    li { margin-bottom: 10px; padding: 10px; border-radius: 8px; }
-    .sent { background: #d0ffd0; text-align: right; }
-    .received { background: #d0d0ff; text-align: left; }
+    ul {
+      list-style: none;
+      padding: 0;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    li {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .sent {
+      background: #d0ffd0;
+      text-align: right;
+    }
+    .received {
+      background: #d0d0ff;
+      text-align: left;
+    }
     input, select, button {
       margin-top: 10px;
       width: 100%;
@@ -29,14 +44,19 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-    button { background: #007bff; color: white; cursor: pointer; border: none; }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
   </style>
 </head>
 <body>
 
 <div id="login">
   <h2>ലോഗിൻ</h2>
-  <input id="username" placeholder="ഉപയോക്താവിന്റെ പേര് നൽകുക (UserA / UserB)" />
+  <input id="username" placeholder="UserA അല്ലെങ്കിൽ UserB എന്ന് നൽകുക" />
   <button onclick="login()">Login</button>
 </div>
 
@@ -45,23 +65,25 @@
   <label>എവർക്കാണ് അയക്കേണ്ടത്:</label>
   <select id="userList"></select><br><br>
   <ul id="messages"></ul>
-  <input id="msg" placeholder="മെസ്സേജ് ടൈപ്പ് ചെയ്യൂ..." />
-  <button onclick="send()">അയയ്ക്കുക</button>
+  <input id="msg" placeholder="Type message here..." />
+  <button onclick="send()">Send</button>
 </div>
 
+<!-- Socket.IO CDN -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
 <script>
-  // ✅ Renderil ullathaya backend connect cheyyuka
+  // ✅ BACKEND URL (Render Socket.IO)
   const socket = io("https://chat2-2-y9e9.onrender.com");
   let myUsername = '';
 
   function login() {
     const username = document.getElementById('username').value.trim();
-    if (!username) return alert('പേര് നൽകുക');
+    if (!username) return alert('പേര് നൽകണം');
     socket.emit('login', username);
   }
 
-  socket.on('login_success', (users) => {
+  socket.on('login_success', function(users) {
     document.getElementById('login').style.display = 'none';
     document.getElementById('chat').style.display = 'block';
     myUsername = document.getElementById('username').value;
@@ -69,7 +91,7 @@
 
     const userList = document.getElementById('userList');
     userList.innerHTML = '';
-    users.forEach(u => {
+    users.forEach(function(u) {
       if (u !== myUsername) {
         const opt = document.createElement('option');
         opt.value = u;
@@ -83,7 +105,8 @@
     const to = document.getElementById('userList').value;
     const message = document.getElementById('msg').value.trim();
     if (!message || !to) return;
-    socket.emit('send_private', { to, message });
+
+    socket.emit('send_private', { to: to, message: message });
 
     const li = document.createElement('li');
     li.classList.add('sent');
