@@ -1,35 +1,42 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, {
+  cors: {
+    origin: "*"
+  }
+});
 
-app.use(express.static(__dirname));
+let users = {};
 
-const users = {};
-
-io.on("connection", socket => {
-  socket.on("login", username => {
+io.on("connection", (socket) => {
+  socket.on("login", (username) => {
     users[username] = socket.id;
-    socket.username = username;
-    socket.emit("login_success");
+    socket.emit("login_success", Object.keys(users));
   });
 
   socket.on("send_private", ({ to, message }) => {
-    const target = users[to];
-    if (target) {
-      io.to(target).emit("receive_private", { from: socket.username, message });
+    const toSocket = users[to];
+    if (toSocket) {
+      io.to(toSocket).emit("receive_private", {
+        from: Object.keys(users).find(key => users[key] === socket.id),
+        message
+      });
     }
   });
 
   socket.on("disconnect", () => {
-    delete users[socket.username];
+    for (const [user, id] of Object.entries(users)) {
+      if (id === socket.id) {
+        delete users[user];
+        break;
+      }
+    }
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(✅ Server running on port ${PORT});
-});
+const PORT = process.env.PORT || 10000;
+server.listen(PORT, () => console.log(Server running on port ${PORT}));
