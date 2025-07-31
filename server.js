@@ -1,28 +1,30 @@
-const users = {}; // username to socketId mapping
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 io.on("connection", (socket) => {
-  socket.on("login", (username) => {
-    users[username] = socket.id;
-    socket.username = username;
-    io.emit("login_success", Object.keys(users));
-  });
+  console.log("✅ New user connected:", socket.id);
 
-  socket.on("send_private", ({ to, message }) => {
-    const from = socket.username;
-    const toSocketId = users[to];
-    if (toSocketId) {
-      io.to(toSocketId).emit("receive_private", {
-        from: from,
-        message: message,
-      });
-    }
+  socket.on("send_message", (data) => {
+    socket.broadcast.emit("receive_message", data);
   });
 
   socket.on("disconnect", () => {
-    const name = socket.username;
-    if (name && users[name]) {
-      delete users[name];
-      io.emit("login_success", Object.keys(users));
-    }
+    console.log("❌ User disconnected:", socket.id);
   });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
