@@ -90,6 +90,7 @@
   function login() {
     const username = document.getElementById('username').value.trim();
     if (!username) return alert('പേര് നൽകണം');
+    myUsername = username;
     socket.emit('login', username);
   }
 
