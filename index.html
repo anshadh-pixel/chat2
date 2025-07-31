@@ -21,7 +21,9 @@
     }
     #chat { 
       display: none;
-      height: 100%;
+      flex: 1;
+      height: 100vh;
+      margin: 0;
       display: flex;
       flex-direction: column;
     }
@@ -95,7 +97,7 @@
     document.getElementById('login').style.display = 'none';
     document.getElementById('chat').style.display = 'block';
     myUsername = document.getElementById('username').value;
-    document.getElementById('welcome').innerText = 'സ്വാഗതം, ${myUsername}!';
+    document.getElementById('welcome').innerText = `സ്വാഗതം, ${myUsername}!`;
 
     const userList = document.getElementById('userList');
     userList.innerHTML = '';
@@ -118,7 +120,7 @@
 
     const li = document.createElement('li');
     li.classList.add('sent');
-    li.innerText = 'നീ ${to}-ന്: ${message}';
+    li.innerText = `നീ ${to}-ന്: ${message}`;
     document.getElementById('messages').appendChild(li);
     document.getElementById('msg').value = '';
   }
