@@ -4,13 +4,17 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 
 const app = express();
-app.use(cors()); // ✅ CORS enabled
+
+// ✅ Allow only your GitHub frontend
+app.use(cors({
+  origin: "https://anshadh-pixel.github.io"
+}));
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", // ✅ Allow GitHub Pages frontend
+    origin: "https://anshadh-pixel.github.io",
     methods: ["GET", "POST"]
   }
 });
@@ -18,7 +22,7 @@ const io = new Server(server, {
 const users = {};
 
 io.on("connection", (socket) => {
-  console.log("✅ Connected:", socket.id);
+  console.log("User connected:", socket.id);
 
   socket.on("login", (username) => {
     users[username] = socket.id;
@@ -26,27 +30,20 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_private", ({ to, message }) => {
-    const toSocketId = users[to];
-    const fromUsername = Object.keys(users).find(key => users[key] === socket.id);
-
-    if (toSocketId) {
-      io.to(toSocketId).emit("receive_private", {
-        from: fromUsername,
-        message
-      });
+    const toId = users[to];
+    const from = Object.keys(users).find(k => users[k] === socket.id);
+    if (toId) {
+      io.to(toId).emit("receive_private", { from, message });
     }
   });
 
   socket.on("disconnect", () => {
-    const username = Object.keys(users).find(key => users[key] === socket.id);
-    if (username) {
-      delete users[username];
-      console.log("❌ Disconnected:", username);
-    }
+    const user = Object.keys(users).find(k => users[k] === socket.id);
+    if (user) delete users[user];
   });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`✅ Socket.IO server running on port ${PORT}`);
 });
