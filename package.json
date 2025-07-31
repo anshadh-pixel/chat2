@@ -1,6 +1,7 @@
 {
-  "name": "chat2",
+  "name": "chat2-backend",
   "version": "1.0.0",
+  "description": "Simple Socket.IO chat backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
